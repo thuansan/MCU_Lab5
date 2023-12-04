@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2023 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2022 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "scheduler.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -63,6 +64,24 @@ static void MX_TIM2_Init(void);
   * @brief  The application entry point.
   * @retval int
   */
+
+void RED1_TOGGLE(){
+	HAL_GPIO_TogglePin(RED1_GPIO_Port, RED1_Pin);
+}
+void RED2_TOGGLE(){
+	HAL_GPIO_TogglePin(RED2_GPIO_Port, RED2_Pin);
+}
+void RED3_TOGGLE(){
+	HAL_GPIO_TogglePin(RED3_GPIO_Port, RED3_Pin);
+}
+void RED4_TOGGLE(){
+	HAL_GPIO_TogglePin(RED4_GPIO_Port, RED4_Pin);
+}
+void RED5_TOGGLE(){
+	HAL_GPIO_TogglePin(RED5_GPIO_Port, RED5_Pin);
+}
+
+
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -88,16 +107,25 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM2_Init();
+  HAL_TIM_Base_Start_IT (& htim2 ) ;
+
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  	SCH_Add_Task(RED1_TOGGLE, 0, 50);
+	SCH_Add_Task(RED2_TOGGLE, 50, 150);
+  	SCH_Add_Task(RED3_TOGGLE, 100, 100);
+
+  	SCH_Add_Task(RED4_TOGGLE, 150, 200);
+  	SCH_Add_Task(RED5_TOGGLE, 200, 250);
   while (1)
   {
     /* USER CODE END WHILE */
-
+	  SCH_Dispatch_Tasks();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -196,16 +224,13 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, RED2_Pin|RED3_Pin|RED4_Pin|RED5_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, RED1_Pin|RED2_Pin|RED3_Pin|RED4_Pin
+                          |RED5_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : RED1_Pin */
-  GPIO_InitStruct.Pin = RED1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(RED1_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : RED2_Pin RED3_Pin RED4_Pin RED5_Pin */
-  GPIO_InitStruct.Pin = RED2_Pin|RED3_Pin|RED4_Pin|RED5_Pin;
+  /*Configure GPIO pins : RED1_Pin RED2_Pin RED3_Pin RED4_Pin
+                           RED5_Pin */
+  GPIO_InitStruct.Pin = RED1_Pin|RED2_Pin|RED3_Pin|RED4_Pin
+                          |RED5_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -214,7 +239,10 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	SCH_Update();
+}
 /* USER CODE END 4 */
 
 /**
